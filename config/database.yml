@@ -1,0 +1,64 @@
+development:
+  adapter: mysql2
+  database: dde_kch
+  host: localhost
+  username: root
+  password: password
+  pool: 500
+  
+production:
+  adapter: mysql2
+  database: dde_kch
+  host: localhost
+  username: root
+  password: password
+  pool: 500
+
+openmrs_bart2_development:
+  adapter: mysql2
+  database: openmrs_mpc
+  host: localhost
+  username: root
+  password: password
+  pool: 500
+
+openmrs_anc_development:
+  adapter: mysql2
+  database: openmrs_mpc_anc
+  host: localhost
+  username: root
+  password: password
+  pool: 500
+
+openmrs_mat_development:
+  adapter: mysql2
+  database: openmrs_mpc_mat
+  host: localhost
+  username: root
+  password: password
+  pool: 500
+
+openmrs_bart2_production:
+  adapter: mysql2
+  database: openmrs_mpc
+  host: localhost
+  username: root
+  password: password
+  pool: 500
+
+openmrs_anc_production:
+  adapter: mysql2
+  database: openmrs_mpc_anc
+  host: localhost
+  username: root
+  password: password
+  pool: 500
+
+openmrs_mat_production:
+  adapter: mysql2
+  database: openmrs_mpc_mat
+  host: localhost
+  username: root
+  password: password
+  pool: 500
+

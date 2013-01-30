@@ -97,4 +97,8 @@ def log_progress(message,log=false)
   LogTimeandCounts.info message if log == true
 end
 
-check_demographics
+
+
+#get_full_attribute(Bart2Person.last,"Occupation")
+build_dde_person(AncPerson.last)
+#check_demographics

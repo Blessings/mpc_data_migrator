@@ -1,0 +1,7 @@
+production:
+  mode: proxy
+  site_id: 2
+development:
+  mode: proxy
+  site_id: 2
+  
