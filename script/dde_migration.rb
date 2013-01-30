@@ -1,12 +1,36 @@
-
-
+LogStatus = Logger.new(Rails.root.join("log","migration_status.txt"))
+LogVer4 = Logger.new(Rails.root.join("log","version4_ids.txt"))
 class DdeMigration
-  def initialize
-    
-  end
   def self.get_patient_identifiers
-    bart2_patient_identifiers = Bart2PatientIdentifier.limit(100)
-    bart2_patient_identifiers.each do |patient_identifier|
+    self.log_progress("Started at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+
+    self.log_progress("Started searching for BART2  patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+    bart2_patient_identifiers = Bart2PatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier).limit(10)
+    self.log_progress("Found #{bart2_patient_identifiers.count} BART2 patient identifiers")
+    self.log_progress("Started searching for maternity patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+    mat_patient_identifiers = MatPatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier).limit(10)
+    self.log_progress("Found #{mat_patient_identifiers.count} Maternity patient identifiers")
+    self.log_progress("Started searching for ANC patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+    anc_patient_identifiers = AncPatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier).limit(10)
+    self.log_progress("Found #{anc_patient_identifiers.count} ANC patient identifiers")
+
+    self.log_progress("Started migrating data at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+
+    self.log_progress("Started migrating BART2 demographics at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+    self.do_migrate(bart2_patient_identifiers)
+    self.log_progress("Finished migrating BART2 demographics at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true )
+    self.log_progress("Started migrating Maternity demographics at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+    self.do_migrate(mat_patient_identifiers)
+    self.log_progress("Finished migrating Maternity demographics at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true )
+    self.log_progress("Started migrating ANC demographics at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+    self.do_migrate(anc_patient_identifiers)
+    self.log_progress("Finished migrating ANC demographics at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true )
+
+    self.log_progress("Finished at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+  end
+  
+  def self.do_migrate(patient_identifiers)
+    patient_identifiers.each do |patient_identifier|
       next if patient_identifier.blank?
       next if patient_identifier.patient.blank?
       next if patient_identifier.patient.person.blank?
@@ -56,7 +80,7 @@ def self.create_person_on_dde(params)
   passed_national_id = (params['person']['data']['patient']['identifiers']['old_identification_number'])
   national_id = passed_national_id.gsub('-','').strip unless passed_national_id.blank?
   version = Guid.new.to_s
-    @person = Person.new(params['person'].merge(
+  person_hash = params['person'].merge(
                          {:creator_site_id => Site.current_id ,
                          :given_name => params["person"]["data"]["names"]["given_name"] ,
                          :family_name => params["person"]["data"]["names"]["family_name"] ,
@@ -65,7 +89,9 @@ def self.create_person_on_dde(params)
                          :birthdate_estimated => params["person"]["data"]["birthdate_estimated"],
                          :version_number => version,
                          :remote_version_number => version }
-                        ))
+                        )
+    LogVer4.info person_hash and return if national_id.length == 6
+    @person = Person.new(person_hash)
      if @person.save
         unless passed_national_id.blank?
           legacy_national_id = LegacyNationalIds.new()
@@ -74,6 +100,7 @@ def self.create_person_on_dde(params)
           legacy_national_id.save
         end
      end
+ self.log_progress("migrated ***#{national_id}***")
 end
 
 def self.build_person_for_dde(params)
@@ -154,7 +181,16 @@ end
 def self.get_full_attribute(person,attribute)
     attribute_value = person.person_attributes.find(:first,:conditions =>["voided = 0 AND person_attribute_type_id = ? AND person_id = ?",
     Bart2PersonAttributeType.find_by_name(attribute).id,person.id]).value rescue nil
-   return attribute_value
+    return attribute_value
+end
+
+def self.log_progress(message,log=false)
+  puts ">>> " + message
+  if log == true
+    LogStatus.info message
+    LogStatus.info "#" * message.length
+  end
+  
 end
 
  self.get_patient_identifiers
