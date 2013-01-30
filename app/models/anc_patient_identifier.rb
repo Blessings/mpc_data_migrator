@@ -4,7 +4,4 @@ class AncPatientIdentifier < ActiveRecord::Base
   self.primary_key = 'patient_identifier_id'
   belongs_to :patient, :class_name => "AncPatient",
              :foreign_key => :patient_id, :conditions => {:voided => 0}
-  def self.get_full_attribute(attribute)
-    
-  end
 end
