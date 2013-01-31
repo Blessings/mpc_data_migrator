@@ -1,18 +1,19 @@
 LogStatus = Logger.new(Rails.root.join("log","migration_status.txt"))
 LogVer4 = Logger.new(Rails.root.join("log","version4_ids.txt"))
+LogErr = Logger.new(Rails.root.join("log","error.txt"))
 class DdeMigration
   def self.get_patient_identifiers
     self.log_progress("Started at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
 
     self.log_progress("Started searching for BART2  patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-    bart2_patient_identifiers = Bart2PatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier).limit(10)
-    self.log_progress("Found #{bart2_patient_identifiers.count} BART2 patient identifiers")
+    bart2_patient_identifiers = Bart2PatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier)
+    self.log_progress("Found #{bart2_patient_identifiers.count} BART2 patient identifiers", true)
     self.log_progress("Started searching for maternity patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-    mat_patient_identifiers = MatPatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier).limit(10)
-    self.log_progress("Found #{mat_patient_identifiers.count} Maternity patient identifiers")
+    mat_patient_identifiers = MatPatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier)
+    self.log_progress("Found #{mat_patient_identifiers.count} Maternity patient identifiers", true)
     self.log_progress("Started searching for ANC patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-    anc_patient_identifiers = AncPatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier).limit(10)
-    self.log_progress("Found #{anc_patient_identifiers.count} ANC patient identifiers")
+    anc_patient_identifiers = AncPatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier)
+    self.log_progress("Found #{anc_patient_identifiers.count} ANC patient identifiers", true)
 
     self.log_progress("Started migrating data at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
 
@@ -92,15 +93,17 @@ def self.create_person_on_dde(params)
                         )
     LogVer4.info person_hash and return if national_id.length == 6
     @person = Person.new(person_hash)
-     if @person.save
+     if @person.save!
         unless passed_national_id.blank?
           legacy_national_id = LegacyNationalIds.new()
           legacy_national_id.person_id = @person.id
           legacy_national_id.value = national_id
-          legacy_national_id.save
+          legacy_national_id.save! rescue LogErr.error "passed national id " + passed_national_id.to_s
         end
+        self.log_progress("migrated ***#{national_id}***")
+     else
+       LogErr.error "passed national id " + passed_national_id.to_s
      end
- self.log_progress("migrated ***#{national_id}***")
 end
 
 def self.build_person_for_dde(params)
