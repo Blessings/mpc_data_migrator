@@ -4,23 +4,16 @@ LogBartOnlyIds = Logger.new(Rails.root.join("log","bart_only_ids.txt"))
 LogMatOnlyIds = Logger.new(Rails.root.join("log","mat_only_ids.txt"))
 LogTimeandCounts = Logger.new(Rails.root.join("log","time_and_counts.txt"))
 
-
-def get_bart_people
-  log_progress("Searching for BART2 female patients from :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-  people = Bart2Person.where(:voided => 0,:gender => "F")
-  log_progress("Finished searching for BART2 female patients at:#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-  log_progress("Found ##{people.count} female patients in BART2",true)
+# Select all people from model that are females and count them
+def get_people(personmodel,name)
+  log_progress("Searching for #{name} female patients from :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+  people = personmodel.where(:voided => 0,:gender => "F")
+  log_progress("Finished searching for #{name} female patients at:#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+  log_progress("Found ##{personmodel.count} female patients in #{name}",true)
   return people
 end
 
-def get_mat_people
-  log_progress("Searching for MAT female patients from :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-  people = MatPerson.where(:voided => 0,:gender => "F")
-  log_progress("Finished searching for MAT female patients at:#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-  log_progress("Found ##{people.count} female patients in MAT",true)
-  return people
-end
-
+#Get all people that are patients
 def get_patients(people)
   patients = []
   people.each do |person|
@@ -29,12 +22,14 @@ def get_patients(people)
   return patients
 end
 
+
+#Analyse demographics
 def check_demographics
   
-  bart_demographics =  build_demographics(get_bart_people)
+  bart_demographics =  build_demographics(get_people(Bart2Person,"BART 2.0"))
   log_progress("Finished buiding BART demographics at: #{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
   log_progress("There are : ##{bart_demographics.count} patient demographics in BART2",true)
-  mat_demographics = build_demographics(get_mat_people)
+  mat_demographics = build_demographics(get_people(MatPerson,"Martenity"))
   log_progress("Finished buiding MAT demographics at: #{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
   log_progress("There are : ##{mat_demographics.count} patient demographics in MAT",true)
   log_progress("Searching MAT demographics at: #{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
@@ -78,7 +73,7 @@ def check_demographics
   log_progress("##{mat_only_ids.count} maternity only ids",true)
   log_progress("Finished checking demographics at: #{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
 end
-
+# Get patients with identifiers only
 def build_demographics(people)
   demographics = {}
   people.each do |person|
@@ -91,7 +86,7 @@ def build_demographics(people)
   end
  return demographics
 end
-
+# log status of script
 def log_progress(message,log=false)
   puts ">>> " + message
   LogTimeandCounts.info message if log == true
@@ -100,5 +95,6 @@ end
 
 
 #get_full_attribute(Bart2Person.last,"Occupation")
-build_dde_person(AncPerson.last)
+#build_dde_person(AncPerson.last)
 #check_demographics
+get_people(Bart2Person,"BART 2.0")
