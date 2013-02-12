@@ -36,7 +36,7 @@ class DdeMigration
     self.do_migrate(anc_patient_identifiers)
     self.log_progress("Finished migrating ANC demographics at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true )
 
-    self.log_progress("Finished at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+    self.log_progress("Finished migration at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
   end
   
   def self.do_migrate(patient_identifiers)
@@ -196,15 +196,6 @@ def self.get_full_attribute(person,attribute)
     return attribute_value
 end
 
-def self.log_progress(message,log=false)
-  puts ">>> " + message
-  if log == true
-    LogStatus.info message
-    LogStatus.info "#" * message.length
-  end
-  
-end
-
 def self.read_files(model_name,file_name)
   self.log_progress("Reading BART 2.0 / #{model_name} common National Identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
     common_id_file = File.open(Rails.root.join("log","#{file_name}"))
@@ -219,6 +210,14 @@ def self.read_files(model_name,file_name)
 
    self.log_progress("Found #{common_ids_stripped.count} BART 2.0 / #{model_name} common National Identifiers", true)
    return common_ids_stripped
+end
+
+def self.log_progress(message,log=false)
+  puts ">>> " + message
+  if log == true
+    LogStatus.info message
+    LogStatus.info "#" * message.length
+  end
 end
 
 
