@@ -5,14 +5,23 @@ class DdeMigration
   def self.get_patient_identifiers
     self.log_progress("Started at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
 
+    identifier_type = Bart2PatientIdentifierType.where(:name => "National id")
+    identifier_type_id =  identifier_type.first.patient_identifier_type_id
+
+    
+    mat_common_ids = []
+    mat_common_ids = self.read_files("Martenity","bart_mat_common_ids.txt")
+    anc_common_ids = []
+    anc_common_ids = self.read_files("ANC","bart_anc_common_ids.txt")
+    
     self.log_progress("Started searching for BART2  patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-    bart2_patient_identifiers = Bart2PatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier)
+    bart2_patient_identifiers = Bart2PatientIdentifier.where(:voided => 0,:identifier_type => identifier_type_id).order(:identifier)
     self.log_progress("Found #{bart2_patient_identifiers.count} BART2 patient identifiers", true)
     self.log_progress("Started searching for maternity patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-    mat_patient_identifiers = MatPatientIdentifier.where("identifier NOT IN(?) AND voided = 0 AND identifier_type = 3",[]).order(:identifier)
+    mat_patient_identifiers = MatPatientIdentifier.where("identifier NOT IN(?) AND voided = 0 AND identifier_type = ?",mat_common_ids, identifier_type_id).order(:identifier)
     self.log_progress("Found #{mat_patient_identifiers.count} Maternity patient identifiers", true)
     self.log_progress("Started searching for ANC patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-    anc_patient_identifiers = AncPatientIdentifier.where("identifier NOT IN(?) AND voided = 0 AND identifier_type = 3",[]).order(:identifier)
+    anc_patient_identifiers = AncPatientIdentifier.where("identifier NOT IN(?) AND voided = 0 AND identifier_type = ?",anc_common_ids, identifier_type_id).order(:identifier)
     self.log_progress("Found #{anc_patient_identifiers.count} ANC patient identifiers", true)
 
     self.log_progress("Started migrating data at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
@@ -196,6 +205,23 @@ def self.log_progress(message,log=false)
   
 end
 
- self.get_patient_identifiers
+def self.read_files(model_name,file_name)
+  self.log_progress("Reading BART 2.0 / #{model_name} common National Identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
+    common_id_file = File.open(Rails.root.join("log","#{file_name}"))
+    common_ids = []
+    common_ids_stripped = []
+    common_ids = common_id_file.readlines
+    common_ids.each do |common_id|
+      next if common_id.blank?
+      next if common_id.strip.length > 13
+      common_ids_stripped << common_id.strip
+    end
+
+   self.log_progress("Found #{common_ids_stripped.count} BART 2.0 / #{model_name} common National Identifiers", true)
+   return common_ids_stripped
+end
+
+
+# self.get_patient_identifiers
 
 end
