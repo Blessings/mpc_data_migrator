@@ -45,7 +45,6 @@ def check_demographics
   common_ids = []
   diff_ids = []
   bart_only_ids = []
-  mat_only_ids = []
   bart_demographics.each do|key,value|
     next if key.blank?
     unless mat_demographics[key].blank?
@@ -109,8 +108,9 @@ def build_demographics(people)
     next if person.patient.blank?
     next if person.patient.patient_identifiers.first.blank?
     demographics[person.patient.patient_identifiers.first.identifier] = {"given_name" => person.names.first.given_name.titlecase,
-                                                              "family_name" => person.names.first.family_name.titlecase,
-                                                              "birthdate" => person.birthdate}
+                                                                         "family_name" => person.names.first.family_name.titlecase,
+                                                                         "gender" => person.gender,
+                                                                         "birthdate" => person.birthdate}
   end
  return demographics
 end
@@ -124,5 +124,5 @@ end
 
 #get_full_attribute(Bart2Person.last,"Occupation")
 #build_dde_person(AncPerson.last)
-#check_demographics
-get_people(Bart2Person,"BART 2.0")
+check_demographics
+#get_people(Bart2Person,"BART 2.0")

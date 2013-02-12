@@ -9,10 +9,10 @@ class DdeMigration
     bart2_patient_identifiers = Bart2PatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier)
     self.log_progress("Found #{bart2_patient_identifiers.count} BART2 patient identifiers", true)
     self.log_progress("Started searching for maternity patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-    mat_patient_identifiers = MatPatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier)
+    mat_patient_identifiers = MatPatientIdentifier.where("identifier NOT IN(?) AND voided = 0 AND identifier_type = 3",[]).order(:identifier)
     self.log_progress("Found #{mat_patient_identifiers.count} Maternity patient identifiers", true)
     self.log_progress("Started searching for ANC patient identifiers at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
-    anc_patient_identifiers = AncPatientIdentifier.where(:voided => 0,:identifier_type => 3).order(:identifier)
+    anc_patient_identifiers = AncPatientIdentifier.where("identifier NOT IN(?) AND voided = 0 AND identifier_type = 3",[]).order(:identifier)
     self.log_progress("Found #{anc_patient_identifiers.count} ANC patient identifiers", true)
 
     self.log_progress("Started migrating data at :#{Time.now().strftime('%Y-%m-%d %H:%M:%S')}",true)
