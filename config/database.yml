@@ -1,6 +1,6 @@
 development:
   adapter: mysql2
-  database: dde_kch
+  database: dde_mpc
   host: localhost
   username: root
   password: password
@@ -8,7 +8,7 @@ development:
   
 production:
   adapter: mysql2
-  database: dde_kch
+  database: dde_mpc
   host: localhost
   username: root
   password: password
